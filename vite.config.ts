@@ -26,6 +26,7 @@ export default defineConfig({
         "putnam-county": path.resolve(import.meta.dirname, "putnam-county/index.html"),
         "rockland-county": path.resolve(import.meta.dirname, "rockland-county/index.html"),
         "westchester-county": path.resolve(import.meta.dirname, "westchester-county/index.html"),
+        "privacy-policy": path.resolve(import.meta.dirname, "privacy-policy/index.html"),
       },
     },
   },
