@@ -1,5 +1,5 @@
 {
-  "name": "hv-chimney",
+  "name": "@workspace/hv-chimney",
   "version": "0.0.0",
   "private": true,
   "type": "module",
