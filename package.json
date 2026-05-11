@@ -1,16 +1,15 @@
 {
-  "name": "@workspace/hv-chimney",
+  "name": "hv-chimney",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite --config vite.config.ts --host 0.0.0.0",
     "build": "vite build --config vite.config.ts",
-    "serve": "vite preview --config vite.config.ts --host 0.0.0.0",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "serve": "vite preview --config vite.config.ts --host 0.0.0.0"
   },
   "devDependencies": {
-    "@types/node": "catalog:",
-    "vite": "catalog:"
+    "@types/node": "^20.17.0",
+    "vite": "^5.4.11"
   }
 }
