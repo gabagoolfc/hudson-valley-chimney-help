@@ -2,6 +2,16 @@
    Hudson Valley Chimney Help — Main JavaScript
    ============================================================ */
 
+/* ── Analytics helper ── */
+function track(eventName, params) {
+  try {
+    if (typeof gtag === 'function') gtag('event', eventName, params || {});
+  } catch (e) {}
+  try {
+    if (typeof clarity === 'function') clarity('event', eventName);
+  } catch (e) {}
+}
+
 /* ── Mobile nav toggle ── */
 function initNav() {
   const toggle = document.querySelector('.nav-toggle');
@@ -25,7 +35,6 @@ function initFAQ() {
       const item = btn.closest('.faq-item');
       const answer = item.querySelector('.faq-answer');
       const isOpen = btn.classList.contains('open');
-      // Close all
       document.querySelectorAll('.faq-question.open').forEach(b => {
         b.classList.remove('open');
         b.closest('.faq-item').querySelector('.faq-answer').classList.remove('open');
@@ -33,14 +42,13 @@ function initFAQ() {
       if (!isOpen) {
         btn.classList.add('open');
         answer.classList.add('open');
+        track('faq_interaction', { question: btn.textContent.trim().replace('▼', '').trim() });
       }
-      // Track
-      btn.closest('.faq-item').setAttribute('data-faq-interaction', 'true');
     });
   });
 }
 
-/* ── Lead form dynamic subject + validation ── */
+/* ── Lead form dynamic subject + validation + submission ── */
 function initForm() {
   const forms = document.querySelectorAll('.lead-form');
   forms.forEach(form => {
@@ -66,11 +74,14 @@ function initForm() {
 
     form.addEventListener('submit', function(e) {
       e.preventDefault();
-      if (!validateForm(form)) return;
+      if (!validateForm(form)) {
+        track('form_error', { form_location: window.location.pathname });
+        return;
+      }
 
       const submitBtn = form.querySelector('.form-submit');
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Submitting…';
+      submitBtn.textContent = 'Submitting\u2026';
 
       const data = new FormData(form);
 
@@ -80,15 +91,22 @@ function initForm() {
         headers: { 'Accept': 'application/json' }
       }).then(res => {
         if (res.ok) {
+          track('lead_form_submit', {
+            service: serviceField ? serviceField.value : '',
+            town: townField ? townField.value.trim() : '',
+            page: window.location.pathname
+          });
           showSuccess(form);
         } else {
           submitBtn.disabled = false;
           submitBtn.textContent = 'Submit Chimney Request';
+          track('form_error', { form_location: window.location.pathname, reason: 'server_error' });
           showFormError(form, 'There was a problem submitting your request. Please try again.');
         }
       }).catch(() => {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit Chimney Request';
+        track('form_error', { form_location: window.location.pathname, reason: 'network_error' });
         showFormError(form, 'There was a problem submitting your request. Please try again.');
       });
     });
@@ -153,6 +171,31 @@ function showFormError(form, msg) {
   el.textContent = msg;
 }
 
+/* ── CTA / card click tracking ── */
+function initClickTracking() {
+  document.querySelectorAll('[data-main-cta-click]').forEach(el => {
+    el.addEventListener('click', () => track('main_cta_click', { page: window.location.pathname }));
+  });
+
+  document.querySelectorAll('[data-secondary-cta-click]').forEach(el => {
+    el.addEventListener('click', () => track('secondary_cta_click', { page: window.location.pathname }));
+  });
+
+  document.querySelectorAll('[data-service-card-click]').forEach(el => {
+    el.addEventListener('click', () => {
+      const label = el.querySelector('h3') ? el.querySelector('h3').textContent.trim() : '';
+      track('service_card_click', { service: label, page: window.location.pathname });
+    });
+  });
+
+  document.querySelectorAll('[data-county-card-click]').forEach(el => {
+    el.addEventListener('click', () => {
+      const label = el.querySelector('h3') ? el.querySelector('h3').textContent.trim() : '';
+      track('county_card_click', { county: label, page: window.location.pathname });
+    });
+  });
+}
+
 /* ── Smooth scroll for anchor links ── */
 function initSmoothScroll() {
   document.querySelectorAll('a[href^="#"]').forEach(a => {
@@ -171,5 +214,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initNav();
   initFAQ();
   initForm();
+  initClickTracking();
   initSmoothScroll();
 });
